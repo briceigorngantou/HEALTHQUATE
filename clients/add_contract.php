@@ -5,16 +5,17 @@ include "./crypt.php";
 
 if (isset($_POST['submit']) && $_SERVER["REQUEST_METHOD"] == "POST") {
     $firstName = encrypt($_POST['firstName']);
-    $lastName = encrypt($_POST['firstName']);
+    $lastName = encrypt($_POST['lastName']);
     $email = encrypt($_POST['email']);
     $poids = encrypt($_POST['poids']);
     $taille = encrypt($_POST['taille']);
     $ville =  encrypt($_POST['taille']);
     $cp = encrypt($_POST['cp']);
 
-    $sql = "INSERT INTO `contrat` (`id`, `nom`, `prenom`, `poids`, `taille`, `ville`, `zip`, `email`, `prix`)
-     VALUES (NULL, '$lastName', '$firstName', '$poids', '$taille', '$ville', '$cp', '$email', NULL)";
-    $result = mysqli_query($connection, $sql);
+    $sql = "INSERT INTO `contrat` (`nom`, `prenom`, `poids`, `taille`, `ville`, `zip`, `email`) VALUES (?, ?, ?, ?, ?, ?, ?)";
+    $stmt = $connection->prepare($sql);
+    $stmt->bind_param('sssssss', $lastName, $firstName, $poids, $taille, $ville, $cp, $email);
+    $result = $stmt->execute();
     if ($result) {
         $msg = "Nouveau contrat crée avec success. Vous allez bientot recevoir un mail de confirmation";
         header('Location: index.php?msg=' . encrypt($msg));
@@ -58,7 +59,7 @@ if (isset($_POST['submit']) && $_SERVER["REQUEST_METHOD"] == "POST") {
                 <label for="firstName" class="form-label">
                     Prénom:
                 </label>
-                <input id="firstName" type="text" class="form-control" name="firstName" placeholder="John" required>
+                <input id="firstName" type="text" class="form-control" name="firstName" required>
             </div>
         </div>
         <div class="row mb-3">
@@ -66,7 +67,7 @@ if (isset($_POST['submit']) && $_SERVER["REQUEST_METHOD"] == "POST") {
                 <label for="lastName" class="form-label">
                     Nom de famille:
                 </label>
-                <input id="lastName" type="text" class="form-control" name="lastName" placeholder="Doe" required>
+                <input id="lastName" type="text" class="form-control" name="lastName" required>
             </div>
         </div>
         <div class="row mb-3">
@@ -74,7 +75,7 @@ if (isset($_POST['submit']) && $_SERVER["REQUEST_METHOD"] == "POST") {
                 <label for="email" class="form-label">
                     Email:
                 </label>
-                <input id="email" type="email" class="form-control" name="email" placeholder="johndoe@example.com" required>
+                <input id="email" type="email" class="form-control" name="email" required>
             </div>
         </div>
         <div class="row mb-3">
@@ -82,7 +83,7 @@ if (isset($_POST['submit']) && $_SERVER["REQUEST_METHOD"] == "POST") {
                 <label for="poids" class="form-label">
                     Poids (en Kg):
                 </label>
-                <input id="poids" type="number" class="form-control" name="poids" placeholder="10.23" required>
+                <input id="poids" type="number" step="0.001" class="form-control" name="poids" required>
             </div>
         </div>
         <div class="row mb-3">
@@ -90,7 +91,7 @@ if (isset($_POST['submit']) && $_SERVER["REQUEST_METHOD"] == "POST") {
                 <label for="taille" class="form-label">
                     Taille (en m):
                 </label>
-                <input id="taille" type="number" class="form-control" name="taille" placeholder="1.50" required>
+                <input id="taille" type="number" step="0.001" class="form-control" name="taille" required>
             </div>
         </div>
         <div class="row mb-3">
@@ -98,7 +99,7 @@ if (isset($_POST['submit']) && $_SERVER["REQUEST_METHOD"] == "POST") {
                 <label for="ville" class="form-label">
                     Ville:
                 </label>
-                <input id="ville" type="text" class="form-control" name="ville" placeholder="Orléans" required>
+                <input id="ville" type="text" class="form-control" name="ville" required>
             </div>
         </div>
         <div class="row mb-3">
@@ -106,7 +107,7 @@ if (isset($_POST['submit']) && $_SERVER["REQUEST_METHOD"] == "POST") {
                 <label for="cp" class="form-label">
                     Code Postal:
                 </label>
-                <input id="cp" type="number" class="form-control" name="cp" placeholder="45100" required>
+                <input id="cp" type="text" class="form-control" name="cp" required>
             </div>
         </div>
         <div class="mb-4">

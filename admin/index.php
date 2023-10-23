@@ -1,36 +1,46 @@
 <?php
+session_start();
 
-include "../db_connect.php";
-include "../send_email.php";
-include "../crypt.php";
+// Check if the user is authenticated
+if (!isset($_SESSION['admin_id'])) {
+    header("Location: login.php"); // Redirect to the login page
+    exit();
+} else {
+    include "../db_connect.php";
+    include "../send_email.php";
+    include "../crypt.php";
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $id = $_POST['contrat_id'];
-    $prix = encrypt($_POST['price']);
-    echo "id:" . $id;
-    echo "price: " . $prix;
-    $sql = "UPDATE contrat SET prix='$prix' WHERE id=$id";
+    if ($_SERVER["REQUEST_METHOD"] == "POST") {
+        $id = $_POST['contrat_id'];
+        $prix = encrypt($_POST['price']);
 
-    if ($connection->query($sql) === TRUE) {
-        $sql = "SELECT * FROM contrat WHERE id = $id";
-        $result = $connection->query($sql);
+        $stmt = $connection->prepare("UPDATE contrat SET prix=? WHERE id=?");
+        $stmt->bind_param('si', $prix, $id);
 
-        if ($result->num_rows > 0) {
-            $row = $result->fetch_assoc();
-            $msg = "Prix du contrat mis à jour avec success";
-            header('Location: index.php?msg=' . encrypt($msg));
-            // send mail
-            $subject = "Réponse à la demande de Contrat";
-            $message = 'Bonjour, suite à votre récente demande de contrat, apres examination de votre dossier que le prix fixé est de ' . $price . 'euros';
-            sendMail(decrypt($email), decrypt($row['nom']) . ' ' . decrypt($row['prenom']), $subject, $message);
+        if ($stmt->execute()) {
+            $stmt = $connection->prepare("SELECT id, nom, prenom, email FROM contrat WHERE id = ?");
+            $stmt->bind_param("i", $id);
+            $stmt->execute();
+            $stmt->store_result();
+            $stmt->bind_result($id, $nom, $prenom, $email);
+
+            if ($stmt->num_rows == 1 && $stmt->fetch()) {
+                $msg = "Prix du contrat mis à jour avec success";
+                header('Location: index.php?msg=' . encrypt($msg));
+                // send mail 
+                $subject = "Réponse à la demande de Contrat";
+                $message = 'Bonjour, suite à votre récente demande de contrat, apres examination ' .
+                    'de votre dossier le prix fixé est de ' . $_POST['price'] . ' euros';
+                sendMail(decrypt($email), decrypt($nom) . ' ' . decrypt($prenom), $subject, $message);
+            }
+        } else {
+            // echo "Error updating contract: " . $connection->error;
+            $msg = "Oups!! Une erreur c'est produite lors du traitement de votre demande";
+            header('Location: index.php?err=' . encrypt($msg));
         }
-    } else {
-        // echo "Error updating contract: " . $connection->error;
-        $msg = "Oups!! Une erreur c'est produite lors du traitement de votre demande";
-        header('Location: index.php?err=' . encrypt($msg));
-    }
 
-    $connection->close();
+        $connection->close();
+    }
 }
 ?>
 
@@ -52,6 +62,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <body>
     <nav class="navbar navbar-light justify-content-left fs-3 mb-5">
         HEALTHQUATE
+        <h5>
+            <a href="logout.php" class="link-underline-light">Logout</a>
+        </h5>
     </nav>
 
     <div class="container">

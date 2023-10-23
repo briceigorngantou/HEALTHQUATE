@@ -1,16 +1,26 @@
 <?php
-include "../db_connect.php";
-include "../crypt.php";
 
-if (isset($_GET['id'])) {
-    $contractId = $_GET['id'];
-    echo $contractId;
-    $sql = "SELECT * FROM contrat WHERE id = $contractId";
-    $result = $connection->query($sql);
+session_start();
 
-    if ($result->num_rows > 0) {
-        $row = $result->fetch_assoc();
-        echo '
+// Check if the user is authenticated
+if (!isset($_SESSION['admin_id'])) {
+    header("Location: login.php"); // Redirect to the login page
+    exit();
+} else {
+    include "../db_connect.php";
+    include "../crypt.php";
+
+    if (isset($_GET['id'])) {
+        $contractId = $_GET['id'];
+
+        $stmt = $connection->prepare("SELECT id, nom, prenom, email FROM contrat WHERE id = ?");
+        $stmt->bind_param('i', $contractId);
+        $stmt->execute();
+        $stmt->store_result();
+        $stmt->bind_result($id, $nom, $prenom, $email);
+
+        if ($stmt->num_rows == 1 && $stmt->fetch()) {
+            echo '
         <div class="modal-header">
             <h4 class="modal-title" id="updatePriceModalLabel">Mise à jour prix</h4>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -19,16 +29,16 @@ if (isset($_GET['id'])) {
             <div class="container">
                 <div class="text-left mb-4">
                     <p class="text-muted"> Vous êtes sur le point de mettre à jour le prix de
-                        la demande de contrat de Mr(Mme) ' . decrypt($row['nom']) . ' ' . decrypt($row['prenom']) . '
+                        la demande de contrat de Mr(Mme) ' . decrypt($nom) . ' ' . decrypt($prenom) . '
                     </p>
                 </div>
             </div>
             <div class="container d-flex justify-content-center">
                 <form method="post" id="updateForm" class="form-contract" action="./index.php">
-                    <input type="hidden" id="id" value="' . $row['id'] . '" name="contrat_id">
+                    <input type="hidden" id="id" value="' . $id . '" name="contrat_id">
                     <div class="row mb-3">
                         <label class="form-label" for="price"><strong>Prix : </strong></label>
-                        <input type="number" class="form-control" id="price" name="price">
+                        <input type="number" step="0.001" class="form-control" id="price" name="price">
                     </div>
                     <div class="mb-4">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ANNULER</button>
@@ -37,6 +47,7 @@ if (isset($_GET['id'])) {
                 </form>
             </div>
         </div>';
+        }
+        $connection->close();
     }
-    $connection->close();
 }

@@ -1,36 +1,25 @@
 <?php
-session_start();
 
 include "../db_connect.php";
 include "../crypt.php";
 
-// Check if the user is already logged in
-if (isset($_SESSION['admin_id'])) {
-    header("Location: index.php"); // Redirect to a dashboard or profile page
-    exit();
-}
-
 // Check if the form was submitted
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = $_POST['email'];
-    $password = $_POST['password'];
+    $username = encrypt($_POST['username']);
+    $hashedPassword = encrypt(password_hash($_POST['password'], PASSWORD_BCRYPT));
 
-    // Query the database to fetch the user's hashed password
-    $sql = "SELECT id, email, password FROM admin WHERE email = ?";
-    $stmt = $connection->prepare($sql);
-    $stmt->bind_param("s", $email);
-    $stmt->execute();
-    $stmt->store_result();
-    $stmt->bind_result($admin_id, $email, $hashed_password);
-
-    if ($stmt->num_rows == 1 && $stmt->fetch() && password_verify($password, decrypt($hashed_password))) {
-        // Authentication successful
-        $_SESSION['admin_id'] = $admin_id;
-        header("Location: index.php"); // Redirect to a dashboard or profile page
+    $stmt = $connection->prepare("INSERT INTO `admin` (`username`, `password`, `email`) VALUES (?, ?, ?)");
+    $stmt->bind_param("sss", $username, $hashedPassword, $email);
+    $result = $stmt->execute();
+    if ($result) {
+        // Registration successful
+        $msg = "Compte crée avec success. Veuillez-vous connecter";
+        header('Location: register.php?msg=' . encrypt($msg));
     } else {
-        // Authentication failed
-        $err = "Email ou mot de passe incorrect.";
-        header('Location: login.php?err=' . encrypt($err));
+        // Registration failed
+        $err = "Oups!! Une erreur c'est produite lors du traitement de votre demande";
+        header('Location: register.php?err=' . encrypt($err));
     }
 
     $stmt->close();
@@ -50,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <!-- css file -->
     <link rel="stylesheet" href="../index.css" />
-    <title>CONNEXION</title>
+    <title>CREATION DE COMPTE</title>
 </head>
 
 <body>
@@ -60,12 +49,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <div class="container">
         <div class="text-center mb-4">
-            <h3>SE CONNECTER</h3>
+            <h3>CREATION DE COMPTE</h3>
         </div>
     </div>
     <div class="container d-flex justify-content-center">
         <form action="" method="post" class="form-contract">
             <?php
+            if (isset($_GET['msg'])) {
+                echo '<div class="alert alert-success alert-dismissible fade show" role="alert">
+                 ' . decrypt($_GET['msg']) . '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+               </div>';
+            }
             if (isset($_GET['err'])) {
                 echo '<div class="alert alert-danger alert-dismissible fade show" role="alert">
             ' . decrypt($_GET['err']) . '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
@@ -82,6 +76,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
             <div class="row mb-3">
                 <div class="col">
+                    <label for="username" class="form-label">
+                        Username:
+                    </label>
+                    <input id="username" type="text" class="form-control" name="username" required>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col">
                     <label for="password" class="form-label">
                         Mot de passe:
                     </label>
@@ -89,9 +91,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
             </div>
             <div class="row mb-2 m-1">
-                <button type="submit" class="btn btn-success" name="submit">SOUMETTRE</button>
+                <button type="submit" class="btn btn-success" name="submit">SE CONNECTER</button>
             </div>
-            <div class="d-flex">Pas encore de inscrit? <a href="register.php"> Créer un compte</a></div>
+            <div class="d-flex">Déjà de inscrit? <a href="login.php"> Connectez-vous</a></div>
         </form>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
