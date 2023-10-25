@@ -17,15 +17,15 @@ if (isset($_POST['submit']) && $_SERVER["REQUEST_METHOD"] == "POST") {
     $stmt->bind_param('sssssss', $lastName, $firstName, $poids, $taille, $ville, $cp, $email);
     $result = $stmt->execute();
     if ($result) {
-        $msg = "Nouveau contrat crée avec success. Vous allez bientot recevoir un mail de confirmation";
-        header('Location: index.php?msg=' . encrypt($msg));
         // send mail
         $subject = "Demande de Contrat";
-        $message = 'Mr(Mme) ' . $firstName . ' ' . $lastName .
+        $message = 'Mr(Mme) ' . decrypt($firstName) . ' ' . decrypt($lastName) .
             ", nous sommes heureux de vous annoncé que votre demande de contrat a été crée avec success. " .
             "Notre équipe l'examinera puis nous reviendrons vers vous avec une offre dans les prochains jours";
 
-        sendMail($email, $firstName . ' ' . $lastName, $subject, $message);
+        sendMail(decrypt($email), decrypt($firstName) . ' ' . decrypt($lastName), $subject, $message);
+        $msg = "Nouveau contrat crée avec success. Vous allez bientot recevoir un mail de confirmation";
+        header('Location: index.php?msg=' . encrypt($msg));
     } else {
         // echo "Failed: " . mysqli_error($connection);
         $msg = "Oups!! Une erreur c'est produite lors du traitement de votre demande";

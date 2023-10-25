@@ -9,15 +9,16 @@ if (!isset($_SESSION['admin_id'])) {
 } else {
     include "../db_connect.php";
     include "../crypt.php";
+    include "../get_price.php";
 
     if (isset($_GET['id'])) {
         $contractId = $_GET['id'];
 
-        $stmt = $connection->prepare("SELECT id, nom, prenom, email FROM contrat WHERE id = ?");
+        $stmt = $connection->prepare("SELECT id, nom, prenom, email, poids, taille FROM contrat WHERE id = ?");
         $stmt->bind_param('i', $contractId);
         $stmt->execute();
         $stmt->store_result();
-        $stmt->bind_result($id, $nom, $prenom, $email);
+        $stmt->bind_result($id, $nom, $prenom, $email, $poids, $taille);
 
         if ($stmt->num_rows == 1 && $stmt->fetch()) {
             echo '
@@ -38,7 +39,7 @@ if (!isset($_SESSION['admin_id'])) {
                     <input type="hidden" id="id" value="' . $id . '" name="contrat_id">
                     <div class="row mb-3">
                         <label class="form-label" for="price"><strong>Prix : </strong></label>
-                        <input type="number" step="0.001" class="form-control" id="price" name="price">
+                        <input type="number" step="0.001" class="form-control" id="price" name="price" value="' . get_price(decrypt($taille), decrypt($poids)) . '">
                     </div>
                     <div class="mb-4">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ANNULER</button>
