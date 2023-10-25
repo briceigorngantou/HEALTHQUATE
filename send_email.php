@@ -7,7 +7,6 @@ use PHPMailer\PHPMailer\SMTP;
 
 function sendMail($email, $name, $subject, $message)
 {
-    echo $email . '-' . $name . '-' . $subject . '-' . $message;
     // Load .env file
     $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
     $dotenv->load();
@@ -28,10 +27,11 @@ function sendMail($email, $name, $subject, $message)
     $mail->Host = $host_mail;
     $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
     $mail->Port = $port_mail;
+    $mail->Username = $sender_mail;
     $mail->Password = $password_mail;
 
-    $mail->setFrom($email, $name);
-    $mail->addAddress($sender_mail, $sender_name);
+    $mail->setFrom($sender_mail, $sender_name);
+    $mail->addAddress($email, $name);
 
     $mail->Subject = $subject;
     $mail->Body = $message;
