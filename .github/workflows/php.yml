@@ -38,12 +38,14 @@ jobs:
     - name: Install dependencies
       run: composer install --prefer-dist --no-progress
 
-    - name: Connect to MySQL
+    - name: Restart MySQL
       run: sudo service mysql restart
   
-    - name: Load status to MySQL
+    - name: Check status to MySQL
       run: sudo service mysql status
-       # run:  mysql -h ${{ secrets.MYSQL_ROOT_HOST }} -u ${{ secrets.MYSQL_ROOT_USERNAME }} -p ${{ secrets.MYSQL_ROOT_PASSWORD }} < migration.sql
+
+    - name: Connect status to MySQL
+      run:  mysql -h ${{ secrets.MYSQL_ROOT_HOST }} -u ${{ secrets.MYSQL_ROOT_USERNAME }} -p ${{ secrets.MYSQL_ROOT_PASSWORD }} < migration.sql
 
     # Add a test script to composer.json, for instance: "test": "vendor/bin/phpunit"
     # Docs: https://getcomposer.org/doc/articles/scripts.md
