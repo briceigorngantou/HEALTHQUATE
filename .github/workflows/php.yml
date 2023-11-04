@@ -13,7 +13,13 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-
+    services:
+      mysql:
+        image: mysql:8.2.0
+        env:
+          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
+        ports:
+          - 3306:3306
     steps:
     - uses: actions/checkout@v3
 
@@ -31,6 +37,11 @@ jobs:
 
     - name: Install dependencies
       run: composer install --prefer-dist --no-progress
+
+    - name: Connect to MySQL
+      run: |
+        mysql -h ${{ secrets.MYSQL_ROOT_HOST }} -u ${{ secrets.MYSQL_ROOT_USERNAME }} -p ${{ secrets.MYSQL_ROOT_PASSWORD }} < ../../migration.sql
+      run: echo 'Database has connected successfully'
 
     # Add a test script to composer.json, for instance: "test": "vendor/bin/phpunit"
     # Docs: https://getcomposer.org/doc/articles/scripts.md
