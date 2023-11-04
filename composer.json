@@ -1,4 +1,7 @@
 {
+    "name": "healthquate/package",
+    "description": "healthquate-package",
+    "license": "ISC",
     "require": {
         "phpmailer/phpmailer": "^6.8",
         "vlucas/phpdotenv": "^5.5"
