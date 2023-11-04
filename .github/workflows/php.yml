@@ -41,7 +41,6 @@ jobs:
     - name: Connect to MySQL
       run: |
         mysql -h ${{ secrets.MYSQL_ROOT_HOST }} -u ${{ secrets.MYSQL_ROOT_USERNAME }} -p ${{ secrets.MYSQL_ROOT_PASSWORD }} < ../../migration.sql
-      run: echo 'Database has connected successfully'
 
     # Add a test script to composer.json, for instance: "test": "vendor/bin/phpunit"
     # Docs: https://getcomposer.org/doc/articles/scripts.md
