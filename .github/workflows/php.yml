@@ -17,7 +17,7 @@ jobs:
       mysql:
         image: mysql:8.2.0
         env:
-          MYSQL_ROOT_PASSWORD: 
+          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
         ports:
           - 3306:3306
     steps:
@@ -45,8 +45,8 @@ jobs:
       run: sudo service mysql status
 
     - name: Connect status to MySQL
-      run:  mysql -h localhost -u root < migration.sql
-
+      #  run:  mysql -h ${{ secrets.MYSQL_ROOT_HOST }} -u ${{ secrets.MYSQL_ROOT_USERNAME }} -p ${{ secrets.MYSQL_ROOT_PASSWORD }} < migration.sql
+      run: mysql -h localhost -u root -p"${{ secrets.MYSQL_ROOT_PASSWORD }}" -e "SELECT * FROM mysql.user WHERE user = 'root';"
     # Add a test script to composer.json, for instance: "test": "vendor/bin/phpunit"
     # Docs: https://getcomposer.org/doc/articles/scripts.md
 
